@@ -1,0 +1,8 @@
+{
+  "short_name": "react-state-data-parser",
+  "name": "react-state-data-parser",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
