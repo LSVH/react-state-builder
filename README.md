@@ -38,6 +38,11 @@ export default () => (
 );
 ```
 
+## Documentation
+
+The documentation with live examples can be found in our storybook, which can be found
+[here](https://lsvh.github.io/react-state-builder/).
+
 ## License
 
 MIT © [LSVH](https://github.com/LSVH)
