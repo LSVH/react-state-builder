@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {storiesOf} from '@storybook/react';
 import {text, withKnobs} from '@storybook/addon-knobs';
-import createStateBuilder from "../";
+import createStateBuilder from "../src";
 import mdx from './index.mdx';
 
 const [context, Provider] = createStateBuilder(onInit, onLoad);
