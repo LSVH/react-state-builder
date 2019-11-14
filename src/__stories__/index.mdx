@@ -1,0 +1,83 @@
+import { Story, Preview, Props } from '@storybook/addon-docs/blocks';
+import {createStateBuilder, onLoad} from './index.props';
+
+# createStateBuilder(onInit, onLoad)
+
+Returns the `context` and the `Provider` component what will help you building your application state.
+
+<Props of={createStateBuilder} />
+
+## Argument: onInit
+
+Returns a so called `StateType` what has the following type declaration:
+
+```
+type StateType = null | {
+  [index: string]: {
+    items: Array<any>,
+    loading?: boolean,
+    identifier?: string | Array<string>,
+  }
+}
+```
+
+## Argument: onLoad
+
+May return anything except a `void`, because the returned value will be pushed into the corresponding items collection.
+
+<Props of={onLoad} />
+
+## Example
+
+```jsx
+import createStateBuilder from 'react-state-builder';
+
+const [context, Provider] = createStateBuilder(onInit, onLoad);
+
+function onInit() {
+  return {
+    a: {
+      items: [Math.random()]
+    },
+    b: {
+      identifier: 'id',
+      items: [{'id': Math.random()}]
+    },
+    c: {
+      identifier: ['id', 'lang'],
+      items: [{'id': Math.random(), 'lang': 'en'}]
+    },
+  }
+}
+
+function onLoad(type: string, payload?: any) {
+  return payload;
+}
+
+function CurrentState({type}: React.PropsWithChildren<{ type?: string }>) {
+  const {state} = React.useContext(context);
+  const value = type != null && state != null && state.hasOwnProperty(type)
+    ? state[type] : state;
+  type = type != null ? '.' + type : '';
+  return <p>Current state{type}: {JSON.stringify(value)}</p>;
+}
+
+function Button({type, payload}: React.PropsWithChildren<{ type: string, payload: any }>) {
+  const {dispatch} = React.useContext(context);
+  const onClick = () => dispatch({type, payload});
+  return <button onClick={onClick}>Load into SubState: {type}</button>
+}
+
+export default () => (
+  <Provider>
+    <CurrentState type='a'/>
+    <Button type='a' payload={'Hello World'}/>
+  </Provider>
+);
+```
+
+### Result
+
+<Preview>
+  <Story id='createstatebuilder--load-without-identifier' />
+</Preview>
