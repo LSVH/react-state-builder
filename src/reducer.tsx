@@ -34,6 +34,7 @@ export type OnLoadType = (type: string, payload?: any) => any;
 export default (onLoad: OnLoadType) => (state: StateType, {type, payload}: ActionType) => {
   if (state != null && state.hasOwnProperty(type) && isPayloadAlreadyLoaded(payload, state[type])) {
     state[type].items = [...state[type].items, onLoad(type, payload)];
+    return Object.assign({}, state);
   }
   return state;
 }
