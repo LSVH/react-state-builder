@@ -1,35 +1,5 @@
 import * as React from "react";
-import {toggleLoadingState} from "./index";
-
-export type SubStateIdentifierType = string | Array<string>;
-export type SubStateItemsType = Array<any>;
-
-export type SubStateType = {
-  identifier?: SubStateIdentifierType,
-  items: SubStateItemsType
-}
-
-export interface SubStateWithLoadingType extends SubStateType {
-  loading?: boolean
-}
-
-export type StateType = {
-  [index: string]: SubStateWithLoadingType
-};
-
-export type ActionType = {
-  type: string
-  payload?: any
-  bulk?: boolean,
-}
-
-export type OnInitType = () => Promise<StateType>;
-export type OnLoadType = (action: ActionType) => Promise<any>;
-
-export type ContextOptions = {
-  onInit: OnInitType,
-  onLoad?: OnLoadType
-}
+import {toggleLoadingState, ContextOptions, ActionType, StateType} from "./index";
 
 type ProviderDataProps = {
   initiated: boolean,
