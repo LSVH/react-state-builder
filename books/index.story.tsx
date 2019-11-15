@@ -23,7 +23,7 @@ function onInit() {
 }
 
 function onLoad(type: string, payload?: any) {
-  console.log(`adding data into sub-state: ${type}`);
+  console.log(`loading data into sub-state: ${type}`);
   return payload;
 }
 
@@ -32,11 +32,6 @@ function InitialState() {
 }
 
 function CurrentState({type}: React.PropsWithChildren<{ type?: string }>) {
-  console.log('render @child');
-  React.useEffect(() => {
-    console.log('useEffect @child');
-  });
-
   const {state} = React.useContext(context);
   const value = type != null && state != null && state.hasOwnProperty(type) ? state[type] : state;
   return <p>{`Current state${type != null ? '.' + type : ''}: ${JSON.stringify(value)}`}</p>;
@@ -63,15 +58,12 @@ storiesOf('createStateBuilder()', module)
       <CurrentState type='c'/>
     </Provider>
   ))
-  .add('load without identifier', () => {
-    console.log('render @app');
-    return (
-      <Provider>
-        <CurrentState type='a'/>
-        <Button type='a' payload={text('payload', 'Hello World')}/>
-      </Provider>
-    )
-  })
+  .add('load without identifier', () => (
+    <Provider>
+      <CurrentState type='a'/>
+      <Button type='a' payload={text('payload', 'Hello World')}/>
+    </Provider>
+  ))
   .add('load with string identifier', () => (
     <Provider>
       <CurrentState type='b'/>
