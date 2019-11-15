@@ -22,7 +22,8 @@ function isPayloadFoundInSubItemsByArrayIdentifier(payload: any, sub: SubStateTy
 
 function isPayloadFoundInSubItemsByStringIdentifier(payload: any, sub: SubStateType) {
   const id = sub.identifier != null && !Array.isArray(sub.identifier) ? sub.identifier : '';
-  return sub.items.find(i => i.hasOwnProperty(id) && i[id] === payload) != null;
+  const value = payload != null && payload.hasOwnProperty(id) ? payload[id] : payload;
+  return sub.items.find(i => i.hasOwnProperty(id) && i[id] === value) != null;
 }
 
 function isPayloadEqualToASubItem(payload: any, sub: SubStateType) {
