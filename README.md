@@ -2,7 +2,7 @@
 
 > A simple framework for building your application state 
 
-[![NPM](https://img.shields.io/npm/v/react-state-builder.svg)](https://www.npmjs.com/package/react-state-builder) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/react-state-builder.svg)](https://www.npmjs.com/package/react-state-builder) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) [![Build Status](https://travis-ci.com/LSVH/react-state-builder.svg?branch=master)](https://travis-ci.com/LSVH/react-state-builder)
 
 ## Install
 
