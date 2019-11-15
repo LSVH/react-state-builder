@@ -1,83 +1,171 @@
-import { Story, Preview, Props } from '@storybook/addon-docs/blocks';
-import {createStateBuilder, onLoad} from './index.props';
+import { Story, Preview } from '@storybook/addon-docs/blocks';
 
-# createStateBuilder(onInit, onLoad)
+# API
 
-Returns the `context` and the `Provider` component what will help you building your application state.
+This documentation contains information about the exports of the 'react-state-builder' module.
 
-<Props of={createStateBuilder} />
+## Functions
 
-## Argument: onInit
+Below a table what serves as the legend for the information in the tables in this chapter.
 
-Returns a so called `StateType` what has the following type declaration:
+Indicator | Meaning
+--- | ---
+**default** | the function what is exported as the default of the module.
 
-```
-type StateType = null | {
-  [index: string]: {
-    items: Array<any>,
-    loading?: boolean,
-    identifier?: string | Array<string>,
-  }
-}
-```
+The following table contains a list of all available function exports of the 'react-state-builder' module.
 
-## Argument: onLoad
+Function | Description
+--- | ---
+**default** | Setup a `context` and `Provider` to start building a state with. <br /> *`(options: `[`ContextOptions`](#type-ContextOptions)`) => [React.Context, JSX.Element]`*
+toggleLoadingState | Toggle the value of the `loading` property of a certain sub state. <br /> *`(state: `[`StateType`](#type-StateType)`, type: string) => void`*
 
-May return anything except a `void`, because the returned value will be pushed into the corresponding items collection.
+## Types
 
-<Props of={onLoad} />
+Below a table what serves as the legend for the information in the tables in this chapter.
 
-## Example
+Indicator | Meaning
+--- | ---
+***** | the property is required.
+
+The following chapters will describe the types/interfaces created by the module.
+
+### ContextOptions <a id="type-ContextOptions" />
+
+Property | Description
+--- | ---
+***** onInit | Determine the structure of the state and store the initial data into it. <br /> *`() => Promise<`[`StateType`](#type-StateType)`>`*
+onLoad | Handle dispatch action data before adding it to the state. <br /> *`(action: `[`ActionType`](#type-ActionType)`) => Promise<any>`*
+
+### ActionType <a id="type-ActionType" />
+
+Property | Description
+--- | ---
+***** type | The property name of the sub state, however with `*` the `payload` will override the complete state.  <br /> *`string`*
+payload | The data to load into the state or the arguments for the data to help determine what to load into the state. <br /> *`any`*
+bulk | By default this will be `false`, when `true` the payload will be spread into the `items` collection.  <br /> *`boolean`*
+
+### StateType <a id="type-StateType" />
+
+Property | Description
+--- | ---
+[index: string] | An object with a string index. <br /> *[`SubStateWithLoadingType`](#type-SubStateWithLoadingType)*
+
+### SubStateWithLoadingType <a id="type-SubStateWithLoadingType" />
+
+This type extends [`SubStateType`](#type-SubStateType).
+
+Property | Description
+--- | ---
+loading | Turns `true` when there are items being loaded for the sub state. <br /> *`boolean`*
+
+### SubStateType <a id="type-SubStateType" />
+
+Property | Description
+--- | ---
+***** items | A collection of the data. <br /> *`Array<any>`*
+identifier | The property or properties to check of a payload whenever it's about to get added to the state. When no identifier is specified the whole payload will be stringified and compared to each single item. <br /> *`string` or `Array<string>`*
+
+
+
+
+
+
+
+
+
+
+
+## Examples
+
+In order to fully understand the code examples in this chapter, please make sure you read the code in the chapter Basic.
+
+### Basic
+
+The following example shows a basic practice of how you can use this module.
+
+<Preview>
+  <Story id='default--basic' />
+</Preview>
 
 ```jsx
+import * as React from 'react'
 import createStateBuilder from 'react-state-builder';
 
-const [context, Provider] = createStateBuilder(onInit, onLoad);
+function ChildWhatAccessesState() {
+  const {state} = React.useContext(context);
+  const count = state != null && state.hasOwnProperty('posts') && state['posts'].items != null
+    ? state['posts'].items.length : 0;
+  return <p>Number of posts in state: {count}</p>
+}
 
-function onInit() {
+function ChildWhatAddsToState() {
+  const {dispatch} = React.useContext(context);
+  const onClickSingle = () => dispatch({type: 'posts', payload: ['foo']});
+  const onClickMultiple = () => dispatch({type: 'posts', payload: ['foo', 'bar'], bulk: true});
+  return (
+    <>
+      <button onClick={onClickSingle}>Add a single post</button>
+      <button onClick={onClickMultiple}>Add multiple posts</button>
+    </>
+  );
+
+}
+
+async function onInit() {
+  const posts = await fetch('https://jsonplaceholder.typicode.com/posts?userId=1')
+    .then(r => r.json());
   return {
-    a: {
-      items: [Math.random()]
-    },
-    b: {
+    posts: {
       identifier: 'id',
-      items: [{'id': Math.random()}]
-    },
-    c: {
-      identifier: ['id', 'lang'],
-      items: [{'id': Math.random(), 'lang': 'en'}]
+      items: posts
     },
   }
 }
 
-function onLoad(type: string, payload?: any) {
-  return payload;
-}
-
-function CurrentState({type}: React.PropsWithChildren<{ type?: string }>) {
-  const {state} = React.useContext(context);
-  const value = type != null && state != null && state.hasOwnProperty(type)
-    ? state[type] : state;
-  type = type != null ? '.' + type : '';
-  return <p>Current state{type}: {JSON.stringify(value)}</p>;
-}
-
-function Button({type, payload}: React.PropsWithChildren<{ type: string, payload: any }>) {
-  const {dispatch} = React.useContext(context);
-  const onClick = () => dispatch({type, payload});
-  return <button onClick={onClick}>Load into SubState: {type}</button>
-}
+const [context, Provider] = createStateBuilder({onInit});
 
 export default () => (
   <Provider>
-    <CurrentState type='a'/>
-    <Button type='a' payload={'Hello World'}/>
+    <ChildWhatAccessesState/>
+    <ChildWhatAddsToState/>
   </Provider>
 );
 ```
 
-### Result
+### Using onLoad
+
+To load async data based on the action send with the `dispatch` call you will have to use the `onLoad` option as shown
+in the example shown below.
 
 <Preview>
-  <Story id='createstatebuilder--load-without-identifier' />
+  <Story id='default--using-onload' />
 </Preview>
+
+```jsx
+function ChildWhatAddsToState() {
+  const {dispatch} = React.useContext(context);
+  const onClickSingle = () => dispatch({type: 'posts', payload: 11});
+  const onClickMultiple = () => dispatch({type: 'posts', bulk: true});
+  return (
+    <>
+      <button onClick={onClickSingle}>Add a single post</button>
+      <button onClick={onClickMultiple}>Add multiple posts</button>
+    </>
+  );
+}
+
+async function onLoad({type, payload, bulk}: ActionType) {
+  if (type === 'posts') {
+    const id = payload != null && payload.hasOwnProperty('id') ? payload['id'] : payload;
+    if (bulk) {
+      return await fetch(`https://jsonplaceholder.typicode.com/posts?userId=2`)
+        .then(r => r.json());
+    } else {
+      return await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
+        .then(r => r.json());
+    }
+  }
+}
+
+const [context, Provider] = createStateBuilder({onInit, onLoad});
+```

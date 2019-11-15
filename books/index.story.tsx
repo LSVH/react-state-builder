@@ -1,83 +1,83 @@
 import * as React from 'react'
 import {storiesOf} from '@storybook/react';
-import {text, withKnobs} from '@storybook/addon-knobs';
-import createStateBuilder from "../src";
-import mdx from './index.mdx';
+import createStateBuilder, {ActionType} from "../src";
 
-const [context, Provider] = createStateBuilder(onInit, onLoad);
-
-function onInit() {
+async function onInit() {
+  const posts = await fetch('https://jsonplaceholder.typicode.com/posts?userId=1').then(r => r.json());
   return {
-    a: {
-      items: [Math.random()]
-    },
-    b: {
+    posts: {
       identifier: 'id',
-      items: [{'id': Math.random()}]
-    },
-    c: {
-      identifier: ['id', 'lang'],
-      items: [{'id': Math.random(), 'lang': 'en'}]
+      items: posts
     },
   }
 }
 
-function onLoad(type: string, payload?: any) {
-  console.log(`loading data into sub-state: ${type}`);
-  return payload;
-}
-
-function InitialState() {
-  return <p>{`Initial state: ${JSON.stringify(onInit())}`}</p>;
-}
-
-function CurrentState({type}: React.PropsWithChildren<{ type?: string }>) {
-  const {state} = React.useContext(context);
-  const value = type != null && state != null && state.hasOwnProperty(type) ? state[type] : state;
-  return <p>{`Current state${type != null ? '.' + type : ''}: ${JSON.stringify(value)}`}</p>;
-}
-
-function Button({type, payload}: React.PropsWithChildren<{ type: string, payload: any }>) {
-  const {dispatch} = React.useContext(context);
-  const onClick = () => dispatch({type, payload});
-  return <button onClick={onClick}>{`Load into SubState: ${type}`}</button>
-}
-
-storiesOf('createStateBuilder()', module)
-  .addDecorator(withKnobs)
-  .addParameters({
-    docs: {
-      page: mdx
+async function onLoad({type, payload, bulk}: ActionType) {
+  if (type === 'posts') {
+    const id = payload != null && payload.hasOwnProperty('id') ? payload['id'] : payload;
+    if (bulk) {
+      return await fetch(`https://jsonplaceholder.typicode.com/posts?userId=2`).then(r => r.json());
+    } else {
+      return await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`).then(r => r.json());
     }
+  }
+}
+
+function DisplayStateCount(context: React.Context<any>) {
+  return () => {
+    const {state} = React.useContext(context);
+    const count = state != null && state.hasOwnProperty('posts') && state['posts'].items != null
+      ? state['posts'].items.length : 0;
+    return <p>Number of posts in state: {count}</p>
+  }
+}
+
+storiesOf('default', module)
+  .add('basic', () => {
+    const [context, Provider] = createStateBuilder({onInit});
+    const ChildWhatAccessesState = DisplayStateCount(context);
+
+    function ChildWhatAddsToState() {
+      const {dispatch} = React.useContext(context);
+      const onClickSingle = () => dispatch({type: 'posts', payload: ['foo']});
+      const onClickMultiple = () => dispatch({type: 'posts', payload: ['foo', 'bar'], bulk: true});
+      return (
+        <>
+          <button onClick={onClickSingle}>Add a single post</button>
+          <button onClick={onClickMultiple}>Add multiple posts</button>
+        </>
+      );
+
+    }
+
+    return (
+      <Provider>
+        <ChildWhatAccessesState/>
+        <ChildWhatAddsToState/>
+      </Provider>
+    );
   })
-  .add('onInit and onLoad', () => (
-    <Provider>
-      <InitialState/>
-      <CurrentState type='a'/>
-      <CurrentState type='b'/>
-      <CurrentState type='c'/>
-    </Provider>
-  ))
-  .add('load without identifier', () => (
-    <Provider>
-      <CurrentState type='a'/>
-      <Button type='a' payload={text('payload', 'Hello World')}/>
-    </Provider>
-  ))
-  .add('load with string identifier', () => (
-    <Provider>
-      <CurrentState type='b'/>
-      <Button type='b' payload={{
-        id: text('payload.id', 'Hello World'),
-      }}/>
-    </Provider>
-  ))
-  .add('load with array identifier', () => (
-    <Provider>
-      <CurrentState type='c'/>
-      <Button type='c' payload={{
-        id: text('payload.id', 'Hello'),
-        lang: text('payload.lang', 'World'),
-      }}/>
-    </Provider>
-  ));
+  .add('using onLoad', () => {
+    const [context, Provider] = createStateBuilder({onInit, onLoad});
+    const ChildWhatAccessesState = DisplayStateCount(context);
+
+    function ChildWhatAddsToState() {
+      const {dispatch} = React.useContext(context);
+      const onClickSingle = () => dispatch({type: 'posts', payload: 11});
+      const onClickMultiple = () => dispatch({type: 'posts', bulk: true});
+      return (
+        <>
+          <button onClick={onClickSingle}>Add a single post</button>
+          <button onClick={onClickMultiple}>Add multiple posts</button>
+        </>
+      );
+
+    }
+
+    return (
+      <Provider>
+        <ChildWhatAccessesState/>
+        <ChildWhatAddsToState/>
+      </Provider>
+    );
+  });

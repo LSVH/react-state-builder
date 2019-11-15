@@ -1,6 +1,8 @@
-import { configure } from '@storybook/react';
+import { configure, addParameters } from '@storybook/react';
+import mdx from "../books/index.mdx";
 
-// automatically import all files in the books directory
+addParameters({docs: { page: mdx }});
+
 const req = require.context('../books', true, /story\.(js|tsx?)$/);
 
 configure(req, module);
