@@ -2,7 +2,7 @@ import { Story, Preview } from '@storybook/addon-docs/blocks';
 
 # API
 
-This documentation contains information about the exports of the 'react-state-builder' module.
+This documentation contains information about the exports of the `react-state-builder` module.
 
 ## Functions
 
@@ -16,11 +16,15 @@ The following table contains a list of all available function exports of the 're
 
 Function | Description
 --- | ---
-**default** | Setup a `context` and `Provider` to start building a state with. <br /> *`(options: `[`ContextOptions`](#type-ContextOptions)`) => [React.Context, JSX.Element]`*
-onInitAction | Used to dispatch an onInit action. <br /> *`(payload: any) => `[`OnInitActionType`](#type-OnInitActionType)*
-onLoadAction | Used to dispatch an onLoad action. <br /> *`(property: string, payload?: any, bulk: boolean = false) => `[`OnLoadActionType`](#type-OnLoadActionType)*
-beforeOnLoadAction | Used to dispatch an beforeOnLoadAction action. <br /> *`(property: string) => `[`BeforeOnLoadActionType`](#type-BeforeOnLoadActionType)*
-setLoadingState | Toggle the value of the `loading` property of a certain sub state. <br /> *`(state: `[`StateType`](#type-StateType)`, type: string) => void`*
+**default** <a id="func-default" /> | Setup a `context` and `Provider` to start building a state with. <br /> *`(options: `[`StateBuilderOptions`](#type-ContextOptions)`) => [React.Context, JSX.Element]`*
+onInitAction <a id="func-onInitAction" /> | Used to dispatch an onInit action. <br /> *`(payload: any) => `[`OnInitActionType`](#type-OnInitActionType)*
+onLoadAction <a id="func-onLoadAction" /> | Used to dispatch an onLoad action. <br /> *`(property: string, payload?: any, bulk: boolean = false) => `[`OnLoadActionType`](#type-OnLoadActionType)*
+beforeOnLoadAction <a id="func-beforeOnLoadAction" /> | Used to dispatch an beforeOnLoadAction action. <br /> *`(property: string) => `[`BeforeOnLoadActionType`](#type-BeforeOnLoadActionType)*
+setLoadingState <a id="func-setLoadingState" /> | Toggle the value of the `loading` property of a certain sub state. <br /> *`(state: `[`StateType`](#type-StateType)`, type: string) => void`*
+defaultCanAddPayload <a id="func-defaultCanAddPayload" /> | The default validation for avoiding duplicates in the state. <br /> *`(state: `[`StateType`](#type-StateType)`, action: `[`OnLoadActionType`](#type-OnLoadActionType)`) => boolean`*
+isEqualToStringIdentifier <a id="func-isEqualToStringIdentifier" /> | Checks whenever the string identifier in `a` is equal to `b`. <br /> *`(a: any, b: any, identifier?: string/Array<string>) => boolean`*
+isEqualToNullIdentifier <a id="func-isEqualToNullIdentifier" /> | Uses `JSON.stringify()` to check if `a` is equal to `b`. <br /> *`(a: any, b: any, identifier?: string/Array<string>) => boolean`*
+isInArrayIdentifier <a id="func-isInArrayIdentifier" /> | Checks whenever the array identifier in `a` is in `b`. <br /> *`(a: any, b: any, identifier?: string/Array<string>) => boolean`*
 
 ## Types
 
@@ -32,12 +36,22 @@ Indicator | Meaning
 
 The following chapters will describe the types/interfaces created by the module.
 
+### StateBuilderOptions <a id="type-StateBuilderOptions" />
+
+This type extends [`ContextOptions`](#type-ContextOptions) and [`ReducerOptions`](#type-ReducerOptions).
+
 ### ContextOptions <a id="type-ContextOptions" />
 
 Property | Description
 --- | ---
 ***** onInit | Determine the structure of the state and store the initial data into it. <br /> *`() => Promise<`[`StateType`](#type-StateType)`>`*
 onLoad | Handle dispatch action data before adding it to the state. <br /> *`(action: `[`ActionType`](#type-ActionType)`) => Promise<any>`*
+
+### ReducerOptions <a id="type-ReducerOptions" />
+
+Property | Description
+--- | ---
+canAddPayload | Function what determines if the payload can be added to the state. <br /> *`(state: `[`StateType`](#type-StateType)`, action: `[`OnLoadActionType`](#type-OnLoadActionType)`) => boolean`*
 
 ### ActionType <a id="type-ActionType" />
 
@@ -96,7 +110,7 @@ loading | Turns `true` when there are items being loaded for the sub state. <br 
 Property | Description
 --- | ---
 ***** items | A collection of the data. <br /> *`Array<any>`*
-identifier | The property or properties to check of a payload whenever it's about to get added to the state. When no identifier is specified the whole payload will be stringified and compared to each single item. <br /> *`string` or `Array<string>`*
+identifier | The property or properties to check of a payload whenever it's about to get added to the state. When no identifier is specified the whole payload will be stringified and compared to each single item. <br /> *`string / Array<string>`*
 
 ## Examples
 
@@ -193,4 +207,26 @@ async function onLoad({type, payload, bulk}: OnLoadType) {
 }
 
 const [context, Provider] = createStateBuilder({onInit, onLoad});
+```
+
+### Using canAddPayload
+
+When the [`defaultCanAddPayload`](#func-defaultCanAddPayload) isn't providing the functionality you need, then you can
+adjust it to your needs by using the `canAddPayload` property.
+
+<Preview>
+  <Story id='default--using-canaddpayload' />
+</Preview>
+
+```jsx
+import {defaultCanAddPayload} from 'react-state-builder';
+
+function canAddPayload(state: StateType, action: OnLoadActionType): boolean {
+  if (action.property === 'posts') {
+    return true;
+  }
+  return defaultCanAddPayload(state, action);
+}
+
+const [context, Provider] = createStateBuilder({onInit, onLoad, canAddPayload});
 ```

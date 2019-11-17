@@ -16,7 +16,9 @@ npm install --save react-state-builder
 import * as React from 'react'
 import createReactStateBuilder, {onLoadAction} from 'react-state-builder'
 
-export const [context, Provider] = createReactStateBuilder({onInit, onLoad});
+export const [context, Provider] = createReactStateBuilder({
+    onInit, onLoad, canAddPayload
+});
 
 function ChildComponent() {
     const {state, dispatch} = React.useContext(context);
@@ -39,14 +41,10 @@ export default () => (
 
 ## Documentation
 
-The documentation with live examples can be found in [our storybook](https://lsvh.github.io/react-state-builder/).
+The documentation with live examples can be found in [the storybook](https://lsvh.github.io/react-state-builder/).
 
 ## Roadmap
 
-* Improve currently implemented conditions at the reducer.
-* Add conditions at the reducer for bulk payloads.
-* Add the option to skip the condition check before the storing the `payload` in to the state.
-* Add option to use a custom condition at `isPayloadAlreadyLoaded()`.
 * Add ESLint to enhance the code style.
 * Add CI tools and tests.
 
