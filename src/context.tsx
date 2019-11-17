@@ -1,8 +1,10 @@
 import * as React from "react";
-import {toggleLoadingState, ContextOptions, ActionType, StateType} from "./index";
+import {beforeOnLoadAction, onInitAction, onLoadAction} from "./helpers";
+import {ActionType, ContextOptions, OnLoadActionType, StateType} from "./typings";
 
 type ProviderDataProps = {
   initiated: boolean,
+  loaded: boolean,
   payload?: any,
 }
 
@@ -24,24 +26,19 @@ export default (reducer: React.Reducer<StateType, ActionType>, {onInit, onLoad}:
     const [state, dispatch] = React.useReducer<React.Reducer<StateType, ActionType>>(reducer, defaultState);
 
     React.useEffect(() => {
-      if (!data.initiated && data.payload == null) {
-        onInit().then(result => setData({...data, payload: result}));
+      if (!data.initiated && !data.loaded) {
+        onInit().then(result => setData({...data, loaded: true, payload: result}));
       }
 
-      if (!data.initiated && data.payload != null) {
-        dispatch({type: '*', payload: data.payload});
+      if (!data.initiated && data.loaded) {
+        dispatch(onInitAction(data.payload));
         setData({...data, initiated: true});
       }
     });
 
-    const middleware = onLoad != null ? React.useCallback(async (action: ActionType) => {
-      toggleLoadingState(state, action.type);
-
-      dispatch({
-        type: action.type,
-        bulk: action.bulk,
-        payload: await onLoad(action)
-      });
+    const middleware = onLoad != null ? React.useCallback(async (action: OnLoadActionType) => {
+      dispatch(beforeOnLoadAction(action.property));
+      dispatch(onLoadAction(action.property, await onLoad(action), action.bulk));
     }, []) : dispatch;
 
     return <context.Provider value={{state, dispatch: middleware}}>{children}</context.Provider>;
@@ -50,6 +47,7 @@ export default (reducer: React.Reducer<StateType, ActionType>, {onInit, onLoad}:
   function Provider({children}: React.PropsWithChildren<{}>) {
     const [data, setData] = React.useState<ProviderDataProps>({
       initiated: false,
+      loaded: false,
       payload: null,
     });
 

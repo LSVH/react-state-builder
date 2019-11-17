@@ -17,7 +17,10 @@ The following table contains a list of all available function exports of the 're
 Function | Description
 --- | ---
 **default** | Setup a `context` and `Provider` to start building a state with. <br /> *`(options: `[`ContextOptions`](#type-ContextOptions)`) => [React.Context, JSX.Element]`*
-toggleLoadingState | Toggle the value of the `loading` property of a certain sub state. <br /> *`(state: `[`StateType`](#type-StateType)`, type: string) => void`*
+onInitAction | Used to dispatch an onInit action. <br /> *`(payload: any) => `[`OnInitActionType`](#type-OnInitActionType)*
+onLoadAction | Used to dispatch an onLoad action. <br /> *`(property: string, payload?: any, bulk: boolean = false) => `[`OnLoadActionType`](#type-OnLoadActionType)*
+beforeOnLoadAction | Used to dispatch an beforeOnLoadAction action. <br /> *`(property: string) => `[`BeforeOnLoadActionType`](#type-BeforeOnLoadActionType)*
+setLoadingState | Toggle the value of the `loading` property of a certain sub state. <br /> *`(state: `[`StateType`](#type-StateType)`, type: string) => void`*
 
 ## Types
 
@@ -40,9 +43,39 @@ onLoad | Handle dispatch action data before adding it to the state. <br /> *`(ac
 
 Property | Description
 --- | ---
-***** type | The property name of the sub state, however with `*` the `payload` will override the complete state.  <br /> *`string`*
+***** type | The type of the action, currently supported are: "onInit", "onLoad" and "beforeOnLoad".  <br /> *`string`*
+property | The property name of the sub state.  <br /> *`string`*
 payload | The data to load into the state or the arguments for the data to help determine what to load into the state. <br /> *`any`*
 bulk | By default this will be `false`, when `true` the payload will be spread into the `items` collection.  <br /> *`boolean`*
+
+### OnInitActionType <a id="type-OnInitActionType" />
+
+This type extends [`ActionType`](#type-ActionType).
+
+Property | Description
+--- | ---
+***** type | The action to trigger. <br /> *`'onInit'`*
+***** payload | What data to send with the action. <br /> *[`StateType`](#type-StateType)*
+
+### OnLoadActionType <a id="type-OnLoadActionType" />
+
+This type extends [`ActionType`](#type-ActionType).
+
+Property | Description
+--- | ---
+***** type | The action to trigger. <br /> *`'onLoad'`*
+***** property | Specify what sub state should be targeted. <br /> *`string`*
+***** payload | What data to send with the action. <br /> *`any`*
+bulk | Determine if the action should be handled as a single value or when `true` as multiple. <br /> *`boolean`*
+
+### BeforeOnLoadActionType <a id="type-BeforeOnLoadActionType" />
+
+This type extends [`ActionType`](#type-ActionType).
+
+Property | Description
+--- | ---
+***** type | The action to trigger. <br /> *`'beforeOnLoad'`*
+***** property | Specify what sub state should be targeted. <br /> *`string`*
 
 ### StateType <a id="type-StateType" />
 
@@ -65,16 +98,6 @@ Property | Description
 ***** items | A collection of the data. <br /> *`Array<any>`*
 identifier | The property or properties to check of a payload whenever it's about to get added to the state. When no identifier is specified the whole payload will be stringified and compared to each single item. <br /> *`string` or `Array<string>`*
 
-
-
-
-
-
-
-
-
-
-
 ## Examples
 
 In order to fully understand the code examples in this chapter, please make sure you read the code in the chapter Basic.
@@ -89,7 +112,7 @@ The following example shows a basic practice of how you can use this module.
 
 ```jsx
 import * as React from 'react'
-import createStateBuilder from 'react-state-builder';
+import createStateBuilder, {StateType, onLoadAction} from 'react-state-builder';
 
 function ChildWhatAccessesState() {
   const {state} = React.useContext(context);
@@ -100,8 +123,8 @@ function ChildWhatAccessesState() {
 
 function ChildWhatAddsToState() {
   const {dispatch} = React.useContext(context);
-  const onClickSingle = () => dispatch({type: 'posts', payload: ['foo']});
-  const onClickMultiple = () => dispatch({type: 'posts', payload: ['foo', 'bar'], bulk: true});
+  const onClickSingle = () => dispatch(onLoadAction('posts', ['foo']));
+  const onClickMultiple = () => dispatch(onLoadAction('posts', ['foo', 'bar'], true));
   return (
     <>
       <button onClick={onClickSingle}>Add a single post</button>
@@ -111,7 +134,7 @@ function ChildWhatAddsToState() {
 
 }
 
-async function onInit() {
+async function onInit() : Promise<StateType> {
   const posts = await fetch('https://jsonplaceholder.typicode.com/posts?userId=1')
     .then(r => r.json());
   return {
@@ -142,10 +165,12 @@ in the example shown below.
 </Preview>
 
 ```jsx
+import {OnLoadType} from 'react-state-builder';
+
 function ChildWhatAddsToState() {
   const {dispatch} = React.useContext(context);
-  const onClickSingle = () => dispatch({type: 'posts', payload: 11});
-  const onClickMultiple = () => dispatch({type: 'posts', bulk: true});
+  const onClickSingle = () => dispatch(onLoadAction('posts', 11));
+  const onClickMultiple = () => dispatch(onLoadAction('posts', null, true));
   return (
     <>
       <button onClick={onClickSingle}>Add a single post</button>
@@ -154,7 +179,7 @@ function ChildWhatAddsToState() {
   );
 }
 
-async function onLoad({type, payload, bulk}: ActionType) {
+async function onLoad({type, payload, bulk}: OnLoadType) {
   if (type === 'posts') {
     const id = payload != null && payload.hasOwnProperty('id') ? payload['id'] : payload;
     if (bulk) {
