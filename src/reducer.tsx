@@ -1,4 +1,5 @@
-import {toggleLoadingState, ActionType, StateType, SubStateType} from "./index";
+import {setLoadingState} from "./helpers";
+import {ActionType, StateType, SubStateType, BEFORE_ON_LOAD, ON_INIT, ON_LOAD} from "./typings";
 
 function isPayloadAlreadyLoaded(payload: any, sub: SubStateType): boolean {
   switch (sub.identifier != null ? sub.identifier.constructor.name : null) {
@@ -30,16 +31,24 @@ function isPayloadEqualToASubItem(payload: any, sub: SubStateType) {
   return sub.items != null && sub.items.find(i => JSON.stringify(i) === JSON.stringify(payload)) != null;
 }
 
-export default (state: StateType, {type, payload, bulk = false}: ActionType) => {
-  if (type === '*') {
-    return Object.assign({}, payload);
-  } else {
-    if (state != null && state.hasOwnProperty(type) && !isPayloadAlreadyLoaded(payload, state[type])) {
-      toggleLoadingState(state, type);
-      const currentItems = state[type].items != null ? state[type].items! : [];
-      state[type].items = bulk ? [...currentItems, ...payload] : [...currentItems, payload];
-      return Object.assign({}, state);
-    }
+export default (state: StateType, {type, property, payload, bulk = false}: ActionType) => {
+  switch (type) {
+    case ON_INIT:
+      state = payload;
+      break;
+
+    case ON_LOAD:
+      const subState = property != null && state.hasOwnProperty(property) ? state[property] : null;
+      if (subState != null && !isPayloadAlreadyLoaded(payload, subState)) {
+        const currentItems = subState.items != null ? subState.items : [];
+        subState.items = bulk ? [...currentItems, ...payload] : [...currentItems, payload];
+      }
+      setLoadingState(state, property!, false);
+      break;
+
+    case BEFORE_ON_LOAD:
+      setLoadingState(state, property!, true);
+      break;
   }
-  return state;
+  return Object.assign({}, state);
 }

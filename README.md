@@ -14,13 +14,13 @@ npm install --save react-state-builder
 
 ```tsx
 import * as React from 'react'
-import createReactStateBuilder from 'react-state-builder'
+import createReactStateBuilder, {onLoadAction} from 'react-state-builder'
 
 export const [context, Provider] = createReactStateBuilder({onInit, onLoad});
 
 function ChildComponent() {
     const {state, dispatch} = React.useContext(context);
-    const onClick = () => dispatch({type: 'foo', payload: 'bar'});
+    const onClick = () => dispatch(onLoadAction('foo', 'bar'));
     return (
         <div>
             <h1>Current state</h1>
@@ -43,12 +43,10 @@ The documentation with live examples can be found in [our storybook](https://lsv
 
 ## Roadmap
 
-* Test and improve examples about the `loading` property of a sub state.
 * Improve currently implemented conditions at the reducer.
 * Add conditions at the reducer for bulk payloads.
 * Add the option to skip the condition check before the storing the `payload` in to the state.
 * Add option to use a custom condition at `isPayloadAlreadyLoaded()`.
-* Refactor naming and distribution of code in general.
 * Add ESLint to enhance the code style.
 * Add CI tools and tests.
 

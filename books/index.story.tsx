@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {storiesOf} from '@storybook/react';
-import createStateBuilder, {ActionType} from "../src";
+import createStateBuilder, {onLoadAction, OnLoadActionType, StateType} from "../src";
 
-async function onInit() {
+async function onInit(): Promise<StateType> {
   const posts = await fetch('https://jsonplaceholder.typicode.com/posts?userId=1').then(r => r.json());
   return {
     posts: {
@@ -12,8 +12,8 @@ async function onInit() {
   }
 }
 
-async function onLoad({type, payload, bulk}: ActionType) {
-  if (type === 'posts') {
+async function onLoad({property, payload, bulk}: OnLoadActionType): Promise<any> {
+  if (property === 'posts') {
     const id = payload != null && payload.hasOwnProperty('id') ? payload['id'] : payload;
     if (bulk) {
       return await fetch(`https://jsonplaceholder.typicode.com/posts?userId=2`).then(r => r.json());
@@ -26,9 +26,10 @@ async function onLoad({type, payload, bulk}: ActionType) {
 function DisplayStateCount(context: React.Context<any>) {
   return () => {
     const {state} = React.useContext(context);
-    const count = state != null && state.hasOwnProperty('posts') && state['posts'].items != null
-      ? state['posts'].items.length : 0;
-    return <p>Number of posts in state: {count}</p>
+    const posts = state != null && state.hasOwnProperty('posts') ? state['posts'] : {};
+    const count = posts.items != null ? posts.items.length : 0;
+    const loading = posts.loading != null ? posts.loading : false;
+    return <p>{`Loading posts: ${loading}`}<br/>{`Number of posts in state: ${count}`}</p>
   }
 }
 
@@ -39,8 +40,8 @@ storiesOf('default', module)
 
     function ChildWhatAddsToState() {
       const {dispatch} = React.useContext(context);
-      const onClickSingle = () => dispatch({type: 'posts', payload: ['foo']});
-      const onClickMultiple = () => dispatch({type: 'posts', payload: ['foo', 'bar'], bulk: true});
+      const onClickSingle = () => dispatch(onLoadAction('posts', ['foo']));
+      const onClickMultiple = () => dispatch(onLoadAction('posts', ['foo', 'bar'], true));
       return (
         <>
           <button onClick={onClickSingle}>Add a single post</button>
@@ -63,8 +64,8 @@ storiesOf('default', module)
 
     function ChildWhatAddsToState() {
       const {dispatch} = React.useContext(context);
-      const onClickSingle = () => dispatch({type: 'posts', payload: 11});
-      const onClickMultiple = () => dispatch({type: 'posts', bulk: true});
+      const onClickSingle = () => dispatch(onLoadAction('posts', 11));
+      const onClickMultiple = () => dispatch(onLoadAction('posts', null, true));
       return (
         <>
           <button onClick={onClickSingle}>Add a single post</button>
