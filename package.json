@@ -1,6 +1,6 @@
 {
   "name": "react-state-builder",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "A simple framework for building your application state",
   "author": "LSVH",
   "license": "MIT",
@@ -23,7 +23,6 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "prop-types": "^15.5.4",
     "react": "^15.0.0 || ^16.0.0",
     "react-dom": "^15.0.0 || ^16.0.0"
   },

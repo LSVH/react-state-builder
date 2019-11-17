@@ -1,6 +1,6 @@
 import * as React from "react";
-import {beforeOnLoadAction, onInitAction, onLoadAction} from "./helpers";
-import {ActionType, ContextOptions, OnLoadActionType, StateType} from "./typings";
+import {beforeOnLoadAction, onInitAction, onLoadAction} from "./functions";
+import {ActionType, ContextOptions, OnLoadActionType, StateType} from "./types";
 
 type ProviderDataProps = {
   initiated: boolean,

@@ -4,6 +4,10 @@ export type ContextOptions = {
   onInit: OnInitType
   onLoad?: OnLoadType
 }
+export type CanAddPayloadType = (state: StateType, action: OnLoadActionType) => boolean;
+export type ReducerOptions = {
+  canAddPayload?: CanAddPayloadType
+}
 export type ActionType = {
   type: string
   property?: string
